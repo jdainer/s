@@ -2,9 +2,13 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>madeleidy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Madeleidy</title>
     
+    <!-- Soporte Móvil & PWA -->
+    <meta name="theme-color" content="#1a0b16">
+    <link rel="apple-touch-icon" href="1/1.png">
+
     <!-- Librerías React y Babel desde CDN -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -15,32 +19,135 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body, html {
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #000000;
-            font-family: system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at center, #2d122d 0%, #0f0511 100%);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #ffffff;
         }
 
         #root {
             width: 100vw;
             height: 100vh;
+            position: relative;
+        }
+
+        /* Encabezado Femenino Estilo Glassmorphism */
+        .mobile-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 14px 20px;
+            background: rgba(45, 18, 45, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(244, 114, 182, 0.2);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-title h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            background: linear-gradient(135deg, #fce7f3 0%, #f472b6 50%, #fb7185 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title p {
+            font-size: 0.72rem;
+            color: #fbcfe8;
+            opacity: 0.8;
+            margin-top: 1px;
+        }
+
+        /* Botón estilo Jhon con degrado rosado/magenta */
+        .btn-jhon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 18px;
+            background: linear-gradient(135deg, #ec4899, #db2777);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-jhon:active {
+            transform: scale(0.95);
+        }
+
+        /* Botón Flotante de Audio con tono fucsia y efecto pulso */
+        .audio-control-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 20px;
+            z-index: 100;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(80, 20, 60, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(244, 114, 182, 0.3);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            outline: none;
+        }
+
+        .audio-pulse {
+            animation: pulse-ring-pink 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-ring-pink {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.6); }
+            50% { box-shadow: 0 0 0 12px rgba(236, 72, 153, 0); }
         }
     </style>
 </head>
 <body>
-    <!-- Reproductor de audio automático -->
-<audio id="miAudio" autoplay loop preload="auto">
-    <source src="1/creo.mp3" type="audio/mpeg">
-   
-</audio>
-<a href="index.html" style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-family: sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s ease;">jhon</a>    <div id="root"></div>
 
-     <script type="text/babel">
-        const { useEffect, useRef } = React;
+    <!-- Encabezado Móvil -->
+    <header class="mobile-header">
+        <div class="header-title">
+            <h1>Madeleidy ✨</h1>
+            <p>Un espacio especial para ti</p>
+        </div>
+        <a href="index.html" class="btn-jhon">Jhon</a>
+    </header>
+
+    <!-- Reproductor de Audio -->
+    <audio id="miAudio" loop preload="auto">
+        <source src="1/creo.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Botón Flotante para controlar Audio -->
+    <button id="btnAudio" class="audio-control-btn audio-pulse" aria-label="Audio">
+        <span id="audioIcon">💖</span>
+    </button>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useEffect, useRef, useState } = React;
 
         const DEFAULT_IMAGES = [
             { src: "1/1.png" },
@@ -52,12 +159,10 @@
             { src: "1/7.png" },
             { src: "1/8.png" },
             { src: "1/9.png" },
-        
- ];
+        ];
+
         function RoundCarousel({
             images = DEFAULT_IMAGES,
-            imageWidth = 300,
-            imageHeight = 300,
             spacing = 3,
             speed = 1,
             direction = "right",
@@ -67,11 +172,32 @@
             perspective = 3000,
             cornerRadius = 22,
             innerDim = 3.5,
-            background = "#000000",
+            background = "transparent",
             style = {},
         }) {
             const items = images.length > 0 ? images : DEFAULT_IMAGES;
             const count = items.length;
+
+            // Ajuste responsivo para celulares
+            const [dimensions, setDimensions] = useState(() => {
+                const w = window.innerWidth;
+                if (w < 480) return { width: 210, height: 270 };
+                if (w < 768) return { width: 250, height: 310 };
+                return { width: 300, height: 360 };
+            });
+
+            useEffect(() => {
+                const handleResize = () => {
+                    const w = window.innerWidth;
+                    if (w < 480) setDimensions({ width: 210, height: 270 });
+                    else if (w < 768) setDimensions({ width: 250, height: 310 });
+                    else setDimensions({ width: 300, height: 360 });
+                };
+                window.addEventListener('resize', handleResize);
+                return () => window.removeEventListener('resize', handleResize);
+            }, []);
+
+            const { width: imageWidth, height: imageHeight } = dimensions;
 
             const ringRef = useRef(null);
             const rafRef = useRef(0);
@@ -83,7 +209,6 @@
             const angle = 360 / count;
             const factor = 1 + spacing * 0.15;
             const radius = (imageWidth * factor) / (2 * Math.tan(Math.PI / count));
-            const radiusPx = cornerRadius;
             const degPerSec = speed * 6 * (direction === "left" ? -1 : 1);
 
             useEffect(() => {
@@ -138,7 +263,7 @@
             const faceBase = {
                 position: "absolute",
                 inset: 0,
-                borderRadius: radiusPx,
+                borderRadius: cornerRadius,
                 overflow: "hidden",
                 backfaceVisibility: "hidden",
                 backgroundSize: "cover",
@@ -159,6 +284,7 @@
                         perspective: `${perspective}px`,
                         cursor: drag ? "grab" : "default",
                         touchAction: "none",
+                        paddingTop: "40px"
                     }}
                     onPointerDown={onPointerDown}
                     onPointerMove={onPointerMove}
@@ -195,16 +321,17 @@
                                         <div
                                             style={{
                                                 ...faceBase,
-                                                backgroundColor: src ? "transparent" : "#222",
+                                                backgroundColor: src ? "transparent" : "#2d122d",
                                                 backgroundImage: src ? `url(${src})` : undefined,
-                                                boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
+                                                boxShadow: "0 12px 35px rgba(236, 72, 153, 0.25), 0 6px 20px rgba(0,0,0,0.5)",
+                                                border: "1.5px solid rgba(244, 114, 182, 0.3)"
                                             }}
                                         />
                                         <div
                                             style={{
                                                 ...faceBase,
                                                 transform: "rotateY(180deg)",
-                                                backgroundColor: src ? "transparent" : "#181818",
+                                                backgroundColor: src ? "transparent" : "#1a0b16",
                                                 backgroundImage: src ? `url(${src})` : undefined,
                                                 filter: `brightness(${innerDim / 10})`,
                                             }}
@@ -218,16 +345,36 @@
             );
         }
 
-        // Renderizado en el DOM
         const root = ReactDOM.createRoot(document.getElementById("root"));
         root.render(<RoundCarousel />);
 
-    window.addEventListener('click', function() {
+        // Lógica de Audio
         const audio = document.getElementById('miAudio');
-        if (audio.paused) {
-            audio.play().catch(error => console.log("Error al reproducir audio:", error));
+        const btnAudio = document.getElementById('btnAudio');
+        const audioIcon = document.getElementById('audioIcon');
+
+        function toggleAudio() {
+            if (audio.paused) {
+                audio.play().then(() => {
+                    audioIcon.textContent = '💖';
+                    btnAudio.classList.remove('audio-pulse');
+                }).catch(err => console.log("Error al reproducir audio:", err));
+            } else {
+                audio.pause();
+                audioIcon.textContent = '🤍';
+            }
         }
-    }, { once: true }); // Se ejecuta solo con el primer clic
+
+        btnAudio.addEventListener('click', toggleAudio);
+
+        window.addEventListener('click', function() {
+            if (audio.paused) {
+                audio.play().then(() => {
+                    audioIcon.textContent = '💖';
+                    btnAudio.classList.remove('audio-pulse');
+                }).catch(() => {});
+            }
+        }, { once: true });
 
     </script>
 </body>

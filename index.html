@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mis sueños</title>
+    
+    <!-- Librerías React y Babel desde CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000000;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        #root {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <!-- Reproductor de audio automático -->
+<audio id="miAudio" autoplay loop preload="auto">
+    <source src="millon.mp3" type="audio/mpeg">
+   
+</audio>
+<a href="made.html" style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-family: sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s ease;">made</a>    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useEffect, useRef } = React;
+
+        const DEFAULT_IMAGES = [
+            { src: "1.png" },
+            { src: "2.png" },
+            { src: "3.png" },
+            { src: "4.png" },
+            { src: "5.png" },
+            { src: "6.png" },
+            { src: "7.png" },
+            { src: "8.png" },
+            { src: "9.png" },
+            { src: "10.png" },
+            { src: "11.png" },
+            { src: "12.png" },
+            { src: "13.png" },
+            { src: "14.png" },
+            { src: "15.png" },
+            { src: "16.png" },
+            
+        ];
+
+        function RoundCarousel({
+            images = DEFAULT_IMAGES,
+            imageWidth = 300,
+            imageHeight = 300,
+            spacing = 3,
+            speed = 1,
+            direction = "right",
+            drag = true,
+            sensitivity = 5,
+            tilt = -7,
+            perspective = 3000,
+            cornerRadius = 22,
+            innerDim = 3.5,
+            background = "#000000",
+            style = {},
+        }) {
+            const items = images.length > 0 ? images : DEFAULT_IMAGES;
+            const count = items.length;
+
+            const ringRef = useRef(null);
+            const rafRef = useRef(0);
+            const rotYRef = useRef(0);
+            const velRef = useRef(0);
+            const lastRef = useRef(0);
+            const dragRef = useRef({ active: false, x: 0 });
+
+            const angle = 360 / count;
+            const factor = 1 + spacing * 0.15;
+            const radius = (imageWidth * factor) / (2 * Math.tan(Math.PI / count));
+            const radiusPx = cornerRadius;
+            const degPerSec = speed * 6 * (direction === "left" ? -1 : 1);
+
+            useEffect(() => {
+                const ring = ringRef.current;
+                if (!ring) return;
+                const apply = () =>
+                    (ring.style.transform = `translateZ(${-radius}px) rotateY(${rotYRef.current}deg)`);
+                apply();
+
+                const draw = (now) => {
+                    const dt = lastRef.current ? (now - lastRef.current) / 1000 : 0;
+                    lastRef.current = now;
+                    const f = Math.min(dt, 0.1);
+                    const d = dragRef.current;
+                    if (!d.active) {
+                        if (Math.abs(velRef.current) > 0.01) {
+                            rotYRef.current += velRef.current * f;
+                            velRef.current *= 0.94;
+                        } else {
+                            rotYRef.current += degPerSec * f;
+                        }
+                    }
+                    apply();
+                    rafRef.current = requestAnimationFrame(draw);
+                };
+                rafRef.current = requestAnimationFrame(draw);
+                return () => cancelAnimationFrame(rafRef.current);
+            }, [radius, degPerSec, count]);
+
+            const onPointerDown = (e) => {
+                if (!drag) return;
+                e.currentTarget.setPointerCapture?.(e.pointerId);
+                dragRef.current = { active: true, x: e.clientX };
+                velRef.current = 0;
+            };
+
+            const onPointerMove = (e) => {
+                const d = dragRef.current;
+                if (!d.active) return;
+                const dx = e.clientX - d.x;
+                d.x = e.clientX;
+                const k = 0.3 * sensitivity;
+                rotYRef.current += dx * k;
+                velRef.current = dx * k * 60;
+            };
+
+            const onPointerUp = (e) => {
+                e.currentTarget.releasePointerCapture?.(e.pointerId);
+                dragRef.current.active = false;
+            };
+
+            const faceBase = {
+                position: "absolute",
+                inset: 0,
+                borderRadius: radiusPx,
+                overflow: "hidden",
+                backfaceVisibility: "hidden",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+            };
+
+            return (
+                <div
+                    style={{
+                        ...style,
+                        width: "100%",
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
+                        background,
+                        perspective: `${perspective}px`,
+                        cursor: drag ? "grab" : "default",
+                        touchAction: "none",
+                    }}
+                    onPointerDown={onPointerDown}
+                    onPointerMove={onPointerMove}
+                    onPointerUp={onPointerUp}
+                    onPointerCancel={onPointerUp}
+                >
+                    <div
+                        style={{
+                            transformStyle: "preserve-3d",
+                            transform: `rotateX(${tilt}deg)`,
+                        }}
+                    >
+                        <div
+                            ref={ringRef}
+                            style={{
+                                position: "relative",
+                                width: imageWidth,
+                                height: imageHeight,
+                                transformStyle: "preserve-3d",
+                            }}
+                        >
+                            {items.map((img, i) => {
+                                const src = img?.src;
+                                return (
+                                    <div
+                                        key={i}
+                                        style={{
+                                            position: "absolute",
+                                            inset: 0,
+                                            transform: `rotateY(${i * angle}deg) translateZ(${radius}px)`,
+                                            transformStyle: "preserve-3d",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                ...faceBase,
+                                                backgroundColor: src ? "transparent" : "#222",
+                                                backgroundImage: src ? `url(${src})` : undefined,
+                                                boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
+                                            }}
+                                        />
+                                        <div
+                                            style={{
+                                                ...faceBase,
+                                                transform: "rotateY(180deg)",
+                                                backgroundColor: src ? "transparent" : "#181818",
+                                                backgroundImage: src ? `url(${src})` : undefined,
+                                                filter: `brightness(${innerDim / 10})`,
+                                            }}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Renderizado en el DOM
+        const root = ReactDOM.createRoot(document.getElementById("root"));
+        root.render(<RoundCarousel />);
+
+    window.addEventListener('click', function() {
+        const audio = document.getElementById('miAudio');
+        if (audio.paused) {
+            audio.play().catch(error => console.log("Error al reproducir audio:", error));
+        }
+    }, { once: true }); // Se ejecuta solo con el primer clic
+
+    </script>
+</body>
+</html>
